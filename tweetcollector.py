@@ -29,13 +29,9 @@ class TwitterCrawler():
     # access_key = ""
     # access_secret = ""
 
-    # Andrew's Key
-    # consumer_key = 'HeRhPPdGDLTAKpkdJ7p8A'
-    # consumer_secret = 'n1kRs1f8GxKEHyw85ZHTYk75i29ZO9ihTFpLSaKB5no'
-
     # My Key
-    consumer_key = 'HeRhPPdGDLTAKpkdJ7p8A'
-    consumer_secret = 'n1kRs1f8GxKEHyw85ZHTYk75i29ZO9ihTFpLSaKB5no'
+    consumer_key = 'rbsR035nxCq4qJHQVKpLg'
+    consumer_secret = 'wI6jJiVhPOYb1Unb06SbqEKaqaW7iamhUZIOy2Vk0'
     access_key = '1952067906-GQzJNJZzG1NuPjk9MfIWEqsSi3UZkEZbFNIwpKQ'
     access_secret = 'am8KbP7GZHC2OXUconGUvmMYCG15HzBmLS6VAhF4'
     
@@ -45,6 +41,7 @@ class TwitterCrawler():
     username = "Wally_Ge"
 
     def __init__(self):
+        self.username = 'Wally_Ge'
         self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_key, self.access_secret)
         self.api = tweepy.API(self.auth)
@@ -54,8 +51,6 @@ class TwitterCrawler():
         self.access_key = access_key
         self.access_secret = access_secret
         self.username = username
-
-
         self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_key, self.access_secret)
         self.api = tweepy.API(self.auth)
@@ -101,9 +96,10 @@ class TwitterCrawler():
                 rpp=100,
                 result_type="recent",
                 include_entities=True,
-                lang="en").items(100):
-                docText = tweet.text.encode('utf-8')
-                printList.append(docText)
+                lang="en").items(3000):
+                # docText = tweet.text.encode('utf-8')
+                # printList.append(docText)
+                printList.append(tweet.json)
 
         #Print to file for testing purposes
         # fileName = docName + ".json"
@@ -283,29 +279,32 @@ class TwitterUser():
         for tweet in self.mytweets:
             print tweet
 
+def write_data(filename, tweets_json):
+    with open(os.path.join(os.getcwd(), filename + '.json'), 'w') as f:
+        for tweet in tweets_json:
+            d = json.loads(tweet)
+            json.dump(d, f)
+            f.write('\n')
+
+def read_data(filename):
+    tweets = [] 
+    with open(os.path.join(os.getcwd(), filename + '.json'), 'r') as f: 
+        for line in f: 
+            t = json.loads(line)
+            tweets.append(t)
+    return tweets
 
 def main():
-
-    access_key = '1952067906-GQzJNJZzG1NuPjk9MfIWEqsSi3UZkEZbFNIwpKQ'
-    access_secret = 'am8KbP7GZHC2OXUconGUvmMYCG15HzBmLS6VAhF4'
-
-    querylist = ['James Harden', 'Houston Rocket', 'Jeremy Lin']
+    querylist = ['from:marchmadness']
     tc = TwitterCrawler()
-    tc.re_init(access_key, access_secret, 'Wally_Ge')
-    tc.setKeys('rbsR035nxCq4qJHQVKpLg', 'wI6jJiVhPOYb1Unb06SbqEKaqaW7iamhUZIOy2Vk0')
     tc.check_api_rate_limit(900)
     result = tc.collect_tweets(querylist)
-    print result
-    
+    write_data('marchmadness', result)
 
-    # tc.re_init(access_key, access_secret)
-    # tu = tc.get_twitter_user_with_friends()
-    # print dir(tu.userinfo)
-    # for key in tu.userinfo.keys():
-    #     print key, tu.userinfo[key]
-    # for friend in tu.friends:
-    #     print friend['name'], friend['screen_name'], friend['description']
-    # tc.check_api_rate_limit(900)
+    tc.check_api_rate_limit(900)
+
+    result = read_data('marchmadness')
+    print result
 
 if __name__ == "__main__":
     main()
