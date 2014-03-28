@@ -275,7 +275,7 @@ else:
 	qc7.append_field('Title',value=question)
 	
 	fta7 = SelectionAnswer(min=1, max=1,style='radiobutton',
-						selections=ratings,
+						selections=ratings2,
 						type='text',
 						other=False)
 	
@@ -341,7 +341,7 @@ else:
 	assignments2 = mtc.get_assignments(hit2_id)
 	answerNum=0
 	
-	knowledgeValue = 0;
+	knowledgeValue = 0
 	
 	
 	for assignment in assignments2:
@@ -353,7 +353,7 @@ else:
 				if answerNum == 1:
 					knowledgeValue = int(value)
 				elif answerNum == 2:
-					if value == 1:
+					if value == 0:
 					    teamPredicts[0] = teamPredicts[0] + knowledgeValue
 					else:
 						teamPredicts[1] = teamPredicts[1] + knowledgeValue
