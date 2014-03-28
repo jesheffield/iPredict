@@ -3,8 +3,8 @@ from boto.mturk.question import QuestionContent,Question,QuestionForm, Overview,
 from time import sleep
 
 
-ACCESS_ID ='access id'
-SECRET_KEY = 'key'
+ACCESS_ID ='AKIAJJC76MZ727G3AQMA'
+SECRET_KEY = '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'
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
  
 mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
@@ -24,6 +24,12 @@ ratings =[('Nothing','-2'),
 		 ('Some','0'),
 		 ('A lot','1'),
 		 ('Everything','2')]
+		 
+ratings2 = [('Nothing','1'),
+		 ('A little','2'),
+		 ('Some','3'),
+		 ('A lot','4'),
+		 ('Everything','5')]
 		 
 yesNo = [('No', '0'),
 		('Yes','1')]
@@ -89,7 +95,7 @@ q2 = Question(identifier='nfl',
 #---------------  BUILD QUESTION 3 -------------------
 
 qc3 = QuestionContent()
-tweet = tweet + '\nAre there teams mentioned?'
+#tweet = tweet + '\nAre there teams mentioned?'
 qc3.append_field('Title', value= tweet)
  
 fta3 = SelectionAnswer(min=1, max=1,style='dropdown',
@@ -105,7 +111,8 @@ q3 = Question(identifier='teams',
  #---------------  BUILD QUESTION 4 -------------------
  
 qc4 = QuestionContent()
-qc4.append_field('Title','If there are teams, enter first team. Otherwise, enter N/A.')
+tweet = tweet + '\n\n\nIf there are teams, enter first team. Otherwise, enter N/A.'
+qc4.append_field('Title',value = tweet)
  
 fta4 = FreeTextAnswer()
  
@@ -130,7 +137,7 @@ q5 = Question(identifier="team2",
 #---------------  BUILD QUESTION 6 -------------------
  
 qc6 = QuestionContent()
-qc6.append_field('Title','If there are teams, enter sport they play. Otherwise, enter N/A')
+qc6.append_field('Title','If there are teams, enter league they play in. Otherwise, enter N/A')
  
 fta6 = FreeTextAnswer()
  
@@ -145,7 +152,7 @@ question_form1 = QuestionForm()
 question_form1.append(overview)
 question_form1.append(q1)
 question_form1.append(q2)
-question_form1.append(q3)
+#question_form1.append(q3)
 question_form1.append(q4)
 question_form1.append(q5)
 question_form1.append(q6)
@@ -175,22 +182,26 @@ while True:
 	
 print 'Done1'
 
+
+
+#Get data from hit1
+
 teamsArray = ['A', 'B']
 timesTeamGiven=[3, 5]
 sportsArray = ['NBA']
 timesSportGiven = [5]
-#Get data from hit1
+
 assignments1 = mtc.get_assignments(hit1_id)
 answerNum=0
 teamsIter = 0
 sportsIter = 0
 for assignment in assignments1:
-	print "Answers of the worker %s" % assignment.WorkerId
+	#print "Answers of the worker %s" % assignment.WorkerId
 	for question_form_answer in assignment.answers[0]:
 		for value in question_form_answer.fields:
 			answerNum=answerNum+1
-			print "Answer %s:" % answerNum
-			if answerNum == 4 or answerNum == 5:
+			#print "Answer %s:" % answerNum
+			if answerNum == 3 or answerNum == 4:
 				teamsIter = 0
 				if value not in teamsArray:
 					teamsArray.append(value)
@@ -201,103 +212,163 @@ for assignment in assignments1:
 							break
 						else:
 							teamsIter = teamsIter+1
-					print 'Location is %s' % teamsIter
+					#print 'Location is %s' % teamsIter
 					timesTeamGiven[teamsIter-1] = timesTeamGiven[teamsIter-1] + 1
-			elif answerNum == 6:
+			elif answerNum == 5:
 				if value not in sportsArray:
 					sportsArray.append(value)
 					timesSportGiven.append(1)
 				else:
-					for y in enumerate(sportsArray):
+					for y in sportsArray:
 						if y==value:
 							break
 						else:
 							sportsIter = sportsIter+1
-					print 'Location is %s' % sportsIter
+					#print 'Location is %s' % sportsIter
 					timesSportGiven[sportsIter-1] = timesSportGiven[sportsIter-1] + 1
-			print "%s" % value
+			#print "%s" % value
 
-	print "-------------------------"
+	#print "-------------------------"
 
 print teamsArray
 print timesTeamGiven
 print sportsArray
 print timesSportGiven
 
+tempTeamArray = teamsArray
+tempTeamNum = timesTeamGiven
+tempSportArray = sportsArray
+tempSportNum = timesSportGiven
 
-#---------------  BUILD OVERVIEW 2 -------------------
- 
-overview2 = Overview()
-overview2.append_field('Title', 'How much do you know about...')
- 
-#---------------  BUILD QUESTION 1 -------------------
- 
-qc7 = QuestionContent()
-sport = 'NBA'
-question = '...' + sport + '?'
-qc7.append_field('Title',value=question)
- 
-fta7 = SelectionAnswer(min=1, max=1,style='radiobutton',
-					  selections=ratings,
-					  type='text',
-					  other=False)
- 
-q7 = Question(identifier='nba',
-			  content=qc7,
-			  answer_spec=AnswerSpecification(fta7),
-			  is_required=True)
- 
-#---------------  BUILD TWEET INFO -------------------
-#---------------  BUILD QUESTION 3 -------------------
+tempArray = zip(tempTeamArray, tempTeamNum)
+tempArray.sort(key=lambda x:x[1])
+tempArray2=zip(tempSportArray, tempSportNum)
+tempArray2.sort(key=lambda x:x[1])
 
-qc8 = QuestionContent()
-team1 = 'Team A'
-team2 = 'Team B'
-teams = [(str(team1),'0'), (str(team2),'1')]
-predictionTeams = team1 + ' vs ' + team2 + '\n\nWho will win?'
-qc8.append_field('Title', value= predictionTeams)
- 
-fta8 = SelectionAnswer(min=1,max=1,style='radiobutton',
-					  selections=teams,
-					  type='text',
-					  other=False)
- 
-q8 = Question(identifier='prediction',
-			  content=qc8,
-			  answer_spec=AnswerSpecification(fta8),
-			  is_required=True)
- 
-#--------------- BUILD THE QUESTION FORM -------------------
- 
-question_form2 = QuestionForm()
-question_form2.append(overview2)
-question_form2.append(q7)
-question_form2.append(q8)
- 
-#--------------- CREATE THE HIT -------------------
-'''
-hit2 = mtc.create_hit(questions=question_form2,
-			   max_assignments=1,
-			   title=title2,
-			   description=description2,
-			   keywords=keywords2,
-			   duration = 60*5,
-			   reward=0.05)
+tempTeams = [x[0] for x in tempArray]
+tempTeams.reverse()
+tempSports = [x[0] for x in tempArray2]
+tempSports.reverse()
 
-hit2_id=hit2[0].HITId
+print '\n\nOrdered Teams: '
+print tempTeams
+print 'Ordered Sports: '
+print tempSports
 
-#WAIT UNTIL ENOUGH RESPONSES HAVE BEEN GIVEN
+if len(tempTeams) < 2:
+	print 'Not enough teams. No game to predict.'
+elif tempTeams[0]  == 'N/A' or tempTeams[1] == 'N/A':
+	print 'Not enough teams. No game to predict.'
+else:
+	team1 = tempTeams[0]
+	team2 = tempTeams[1]
+	#---------------  BUILD OVERVIEW 2 -------------------
+	
+	overview2 = Overview()
+	overview2.append_field('Title', 'How much do you know about...')
+	
+	#---------------  BUILD QUESTION 1 -------------------
+	
+	qc7 = QuestionContent()
+	sport = 'NBA'
+	question = '...' + sport + '?'
+	qc7.append_field('Title',value=question)
+	
+	fta7 = SelectionAnswer(min=1, max=1,style='radiobutton',
+						selections=ratings,
+						type='text',
+						other=False)
+	
+	q7 = Question(identifier='nba',
+				content=qc7,
+				answer_spec=AnswerSpecification(fta7),
+				is_required=True)
+	
+	#---------------  BUILD TWEET INFO -------------------
+	#---------------  BUILD QUESTION 3 -------------------
+	
+	qc8 = QuestionContent()
+	teams = [(str(team1),'0'), (str(team2),'1')]
+	predictionTeams = team1 + ' vs ' + team2 + '\n\nWho will win?'
+	qc8.append_field('Title', value= predictionTeams)
+	
+	fta8 = SelectionAnswer(min=1,max=1,style='radiobutton',
+						selections=teams,
+						type='text',
+						other=False)
+	
+	q8 = Question(identifier='prediction',
+				content=qc8,
+				answer_spec=AnswerSpecification(fta8),
+				is_required=True)
+	
+	#--------------- BUILD THE QUESTION FORM -------------------
+	
+	question_form2 = QuestionForm()
+	question_form2.append(overview2)
+	question_form2.append(q7)
+	question_form2.append(q8)
+	
+	#--------------- CREATE THE HIT -------------------
+	
+	hit2 = mtc.create_hit(questions=question_form2,
+				max_assignments=1,
+				title=title2,
+				description=description2,
+				keywords=keywords2,
+				duration = 60*5,
+				reward=0.05)
+	
+	hit2_id=hit2[0].HITId
+	
+	#WAIT UNTIL ENOUGH RESPONSES HAVE BEEN GIVEN
+	
+	while True:
+		assignments2 = mtc.get_assignments(hit2_id)
+		num2 = int(assignments2.NumResults)
+		if num2 < 1:
+			continue
+		else:
+			break
+	
+	print 'Done2'
+	
+	#Get data from hit2
 
-while True:
+	teamsArray2 = [team1, team2]
+	teamPredicts =[0, 0]
+	
 	assignments2 = mtc.get_assignments(hit2_id)
-	num2 = int(assignments2.NumResults)
-	if num2 < 1:
-		print 'Not done2'
-		continue
-	else:
-		break
-'''
-print 'Done2'
-
-
-#Get data from part 2
+	answerNum=0
+	
+	knowledgeValue = 0;
+	
+	
+	for assignment in assignments2:
+		#print "Answers of the worker %s" % assignment.WorkerId
+		for question_form_answer in assignment.answers[0]:
+			for value in question_form_answer.fields:
+				answerNum=answerNum+1
+				#print "Answer %s:" % answerNum
+				if answerNum == 1:
+					knowledgeValue = int(value)
+				elif answerNum == 2:
+					if value == 1:
+					    teamPredicts[0] = teamPredicts[0] + knowledgeValue
+					else:
+						teamPredicts[1] = teamPredicts[1] + knowledgeValue
+				#print "%s" % value
+	
+		#print "-------------------------"
+	
+	print teamsArray2
+	print teamPredicts
+	
+	predictionArray = zip(teamsArray2, teamPredicts)
+	predictionArray.sort(key=lambda x:x[1])
+	
+	predictedTeams = [x[0]for x in predictionArray]
+	predictedTeams.reverse()
+	
+	print '\n\nThe prediction of the crowd is: '
+	print str(predictedTeams[0])+ ' will win!'
