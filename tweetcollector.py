@@ -286,14 +286,16 @@ class TwitterUser():
 
 def main():
 
-    # access_key = '1952067906-GQzJNJZzG1NuPjk9MfIWEqsSi3UZkEZbFNIwpKQ'
-    # access_secret = 'am8KbP7GZHC2OXUconGUvmMYCG15HzBmLS6VAhF4'
+    access_key = '1952067906-GQzJNJZzG1NuPjk9MfIWEqsSi3UZkEZbFNIwpKQ'
+    access_secret = 'am8KbP7GZHC2OXUconGUvmMYCG15HzBmLS6VAhF4'
 
     querylist = ['James Harden', 'Houston Rocket', 'Jeremy Lin']
     tc = TwitterCrawler()
+    tc.re_init(access_key, access_secret, 'Wally_Ge')
+    tc.setKeys('rbsR035nxCq4qJHQVKpLg', 'wI6jJiVhPOYb1Unb06SbqEKaqaW7iamhUZIOy2Vk0')
     tc.check_api_rate_limit(900)
     result = tc.collect_tweets(querylist)
-    # tc.setKeys('rbsR035nxCq4qJHQVKpLg', 'wI6jJiVhPOYb1Unb06SbqEKaqaW7iamhUZIOy2Vk0')
+    print result
     
 
     # tc.re_init(access_key, access_secret)
