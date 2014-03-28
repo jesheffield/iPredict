@@ -3,8 +3,8 @@ from boto.mturk.question import QuestionContent,Question,QuestionForm, Overview,
 from time import sleep
 
 
-ACCESS_ID ='AKIAJJC76MZ727G3AQMA'
-SECRET_KEY = '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'
+ACCESS_ID ='access id'
+SECRET_KEY = 'key'
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
  
 mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
