@@ -79,7 +79,7 @@ result = tc.collect_tweets(querylist)
 
 tweetNum = 0
 
-while(tweetNum < maxTweets){
+while(tweetNum <= maxTweets):
 	tweet = result[tweetNum]['text'].encode('utf-8','ignore')
 	
 	#---------------  BUILD OVERVIEW 1 -------------------
@@ -203,7 +203,7 @@ while(tweetNum < maxTweets){
 	while True:
 		assignments1 = mtc.get_assignments(hit1_id)
 		num1 = int(assignments1.NumResults)
-		if num1 < (numberHits/2):
+		if num1 < numberHits:
 			#print 'Not done1'
 			continue
 		else:
@@ -396,7 +396,7 @@ else:
 	while True:
 		assignments2 = mtc.get_assignments(hit2_id)
 		num2 = int(assignments2.NumResults)
-		if num2 < (numberHits/2):
+		if num2 < numberHits:
 			continue
 		else:
 			break
