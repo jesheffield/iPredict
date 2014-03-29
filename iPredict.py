@@ -8,9 +8,20 @@ ACCESS_ID ='access id'
 SECRET_KEY = 'key'
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
 numberHits = 1
+maxTweets = 5
 
+
+#------------SANDBOX TESTING--------------------
 mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
-					  aws_secret_access_key=SECRET_KEY)
+					  aws_secret_access_key=SECRET_KEY,
+					  host=HOST)
+
+
+#------------ACTUAL USE------------------------------
+'''					  
+mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
+					  aws_secret_access_key=SECRET_KEY)					  
+'''
 
 #----------------------------------------------
 
@@ -66,224 +77,235 @@ tc = TwitterCrawler()
 tc.check_api_rate_limit(900)
 result = tc.collect_tweets(querylist)
 
-tweet = result[2]['text'].encode('utf-8','ignore')
- 
-#---------------  BUILD OVERVIEW 1 -------------------
- 
-overview = Overview()
-overview.append_field('Title', 'How much do you know about...')
- 
-#---------------  BUILD QUESTION 1 -------------------
- 
-qc1 = QuestionContent()
-qc1.append_field('Title','...NBA?')
- 
-fta1 = SelectionAnswer(min=1, max=1,style='radiobutton',
-					  selections=ratings,
-					  type='text',
-					  other=False)
- 
-q1 = Question(identifier='nba',
-			  content=qc1,
-			  answer_spec=AnswerSpecification(fta1),
-			  is_required=True)
+tweetNum = 0
 
-#---------------  BUILD QUESTION 2 -------------------
- 
-qc2 = QuestionContent()
-qc2.append_field('Title','...NCAA? (March Madness)')
- 
-fta2 = SelectionAnswer(min=1, max=1,style='radiobutton',
-					  selections=ratings,
-					  type='text',
-					  other=False)
- 
-q2 = Question(identifier='ncaa',
-			  content=qc2,
-			  answer_spec=AnswerSpecification(fta2),
-			  is_required=True)
- 
-#---------------  BUILD TWEET INFO -------------------
-#---------------  BUILD QUESTION 3 -------------------
-
-qc3 = QuestionContent()
-tweet = tweet + '\n\nIs a game mentioned?'
-qc3.append_field('Title', value= tweet)
- 
-fta3 = SelectionAnswer(min=1, max=1,style='dropdown',
-					  selections=yesNo,
-					  type='text',
-					  other=False)
- 
-q3 = Question(identifier='teams',
-			  content=qc3,
-			  answer_spec=AnswerSpecification(fta3),
-			  is_required=True)
- 
- #---------------  BUILD QUESTION 4 -------------------
- 
-qc4 = QuestionContent()
-qc4.append_field('Title','If a game is mentioned, enter first team. Otherwise, enter N/A.')
- 
-fta4 = FreeTextAnswer()
- 
-q4 = Question(identifier="team1",
-			  content=qc4,
-			  answer_spec=AnswerSpecification(fta4),
-			  is_required=True)
-
- #---------------  BUILD QUESTION 5 -------------------
- 
-qc5 = QuestionContent()
-qc5.append_field('Title','If a game is mentioned, enter second team. Otherwise, enter N/A')
- 
-fta5 = FreeTextAnswer()
- 
-q5 = Question(identifier="team2",
-			  content=qc5,
-			  answer_spec=AnswerSpecification(fta5),
-			  is_required=True)
-			  
-			  
-#---------------  BUILD QUESTION 6 -------------------
- 
-qc6 = QuestionContent()
-qc6.append_field('Title','If is a game mentioned, enter league for game. Otherwise, enter N/A')
- 
-fta6 = FreeTextAnswer()
- 
-q6 = Question(identifier="sport",
-			  content=qc6,
-			  answer_spec=AnswerSpecification(fta6),
-			  is_required=True)
- 
-#--------------- BUILD THE QUESTION FORM -------------------
- 
-question_form1 = QuestionForm()
-question_form1.append(overview)
-question_form1.append(q1)
-question_form1.append(q2)
-question_form1.append(q3)
-question_form1.append(q4)
-question_form1.append(q5)
-question_form1.append(q6)
- 
-#--------------- CREATE THE HIT -------------------
-
-
-
-hit1 = mtc.create_hit(questions=question_form1,
-			   max_assignments=numberHits,
-			   title=title,
-			   description=description,
-			   keywords=keywords,
-			   duration = 60*5,
-			   lifetime=60*5,
-			   reward=0.01)
-
-hit1_id=hit1[0].HITId
-
-
-
-#WAIT UNTIL ENOUGH RESPONSES HAVE BEEN GIVEN
-
-while True:
-	assignments1 = mtc.get_assignments(hit1_id)
-	num1 = int(assignments1.NumResults)
-	if num1 < numberHits:
-		#print 'Not done1'
-		continue
-	else:
-		break
+while(tweetNum < maxTweets){
+	tweet = result[tweetNum]['text'].encode('utf-8','ignore')
 	
-print 'Done1'
-
-
-
-#Get data from hit1
-
-teamsArray = []
-timesTeamGiven=[]
-sportsArray = []
-timesSportGiven = []
-tweetRelevant = False
-
-assignments1 = mtc.get_assignments(hit1_id)
-answerNum=0
-teamsIter = 0
-sportsIter = 0
-for assignment in assignments1:
-	print "Answers of the worker %s" % assignment.WorkerId
-	for question_form_answer in assignment.answers[0]:
-		for value in question_form_answer.fields:
-			answerNum=(answerNum+1)%7
-			if answerNum == 0:
-				answerNum = 1
-			print "Answer %s:" % answerNum
-			if answerNum == 3:
-				if int(value) == int(0):
-					tweetRelevant = False
-				else:
-					tweetRelevant = True
-			if answerNum == 4 or answerNum == 5:
-				if tweetRelevant:
-					teamsIter = 0
-					if value not in teamsArray:
-						teamsArray.append(value)
-						timesTeamGiven.append(1)
+	#---------------  BUILD OVERVIEW 1 -------------------
+	
+	overview = Overview()
+	overview.append_field('Title', 'How much do you know about...')
+	
+	#---------------  BUILD QUESTION 1 -------------------
+	
+	qc1 = QuestionContent()
+	qc1.append_field('Title','...NBA?')
+	
+	fta1 = SelectionAnswer(min=1, max=1,style='radiobutton',
+						selections=ratings,
+						type='text',
+						other=False)
+	
+	q1 = Question(identifier='nba',
+				content=qc1,
+				answer_spec=AnswerSpecification(fta1),
+				is_required=True)
+	
+	#---------------  BUILD QUESTION 2 -------------------
+	
+	qc2 = QuestionContent()
+	qc2.append_field('Title','...NCAA? (March Madness)')
+	
+	fta2 = SelectionAnswer(min=1, max=1,style='radiobutton',
+						selections=ratings,
+						type='text',
+						other=False)
+	
+	q2 = Question(identifier='ncaa',
+				content=qc2,
+				answer_spec=AnswerSpecification(fta2),
+				is_required=True)
+	
+	#---------------  BUILD TWEET INFO -------------------
+	#---------------  BUILD QUESTION 3 -------------------
+	
+	qc3 = QuestionContent()
+	tweet = 'For all entries, use proper capialization and spell as in tweet\n\n\n' + tweet + '\n\nIs a game mentioned?'
+	qc3.append_field('Title', value= tweet)
+	
+	fta3 = SelectionAnswer(min=1, max=1,style='dropdown',
+						selections=yesNo,
+						type='text',
+						other=False)
+	
+	q3 = Question(identifier='teams',
+				content=qc3,
+				answer_spec=AnswerSpecification(fta3),
+				is_required=True)
+	
+	#---------------  BUILD QUESTION 4 -------------------
+	
+	qc4 = QuestionContent()
+	qc4.append_field('Title','If a game is mentioned, enter first team. Otherwise, enter N/A.')
+	
+	fta4 = FreeTextAnswer()
+	
+	q4 = Question(identifier="team1",
+				content=qc4,
+				answer_spec=AnswerSpecification(fta4),
+				is_required=True)
+	
+	#---------------  BUILD QUESTION 5 -------------------
+	
+	qc5 = QuestionContent()
+	qc5.append_field('Title','If a game is mentioned, enter second team. Otherwise, enter N/A')
+	
+	fta5 = FreeTextAnswer()
+	
+	q5 = Question(identifier="team2",
+				content=qc5,
+				answer_spec=AnswerSpecification(fta5),
+				is_required=True)
+				
+				
+	#---------------  BUILD QUESTION 6 -------------------
+	
+	qc6 = QuestionContent()
+	qc6.append_field('Title','If is a game mentioned, enter league for game. Otherwise, enter N/A')
+	
+	fta6 = FreeTextAnswer()
+	
+	q6 = Question(identifier="sport",
+				content=qc6,
+				answer_spec=AnswerSpecification(fta6),
+				is_required=True)
+	
+	#--------------- BUILD THE QUESTION FORM -------------------
+	
+	question_form1 = QuestionForm()
+	question_form1.append(overview)
+	question_form1.append(q1)
+	question_form1.append(q2)
+	question_form1.append(q3)
+	question_form1.append(q4)
+	question_form1.append(q5)
+	question_form1.append(q6)
+	
+	#--------------- CREATE THE HIT -------------------
+	
+	
+	
+	hit1 = mtc.create_hit(questions=question_form1,
+				max_assignments=numberHits,
+				title=title,
+				description=description,
+				keywords=keywords,
+				duration = 60*5,
+				lifetime=60*30,
+				reward=0.01)
+	
+	hit1_id=hit1[0].HITId
+	
+	
+	#WAIT UNTIL ENOUGH RESPONSES HAVE BEEN GIVEN
+	
+	while True:
+		assignments1 = mtc.get_assignments(hit1_id)
+		num1 = int(assignments1.NumResults)
+		if num1 < (numberHits/2):
+			#print 'Not done1'
+			continue
+		else:
+			break
+		
+	print 'Done1'
+	
+	
+	
+	#Get data from hit1
+	
+	teamsArray = []
+	timesTeamGiven=[]
+	sportsArray = []
+	timesSportGiven = []
+	tweetRelevant = False
+	
+	assignments1 = mtc.get_assignments(hit1_id)
+	answerNum=0
+	teamsIter = 0
+	sportsIter = 0
+	for assignment in assignments1:
+		print "Answers of the worker %s" % assignment.WorkerId
+		for question_form_answer in assignment.answers[0]:
+			for value in question_form_answer.fields:
+				answerNum=(answerNum+1)%7
+				if answerNum == 0:
+					answerNum = 1
+				print "Answer %s:" % answerNum
+				if answerNum == 3:
+					if int(value) == int(0):
+						tweetRelevant = False
 					else:
-						for y in teamsArray:
-							if y==value:
-								break
-							else:
-								teamsIter = teamsIter+1
-						#print 'Location is %s' % teamsIter
-						timesTeamGiven[teamsIter-1] = timesTeamGiven[teamsIter-1] + 1
-			if answerNum == 6:
-				if tweetRelevant:
-					if value not in sportsArray:
-						sportsArray.append(value)
-						timesSportGiven.append(1)
-					else:
-						for y in sportsArray:
-							if y==value:
-								break
-							else:
-								sportsIter = sportsIter+1
-						#print 'Location is %s' % sportsIter
-						timesSportGiven[sportsIter-1] = timesSportGiven[sportsIter-1] + 1
-			print "%s" % value
+						tweetRelevant = True
+				if answerNum == 4 or answerNum == 5:
+					if tweetRelevant:
+						teamsIter = 0
+						if value not in teamsArray:
+							teamsArray.append(value)
+							timesTeamGiven.append(1)
+						else:
+							for y in teamsArray:
+								if y==value:
+									break
+								else:
+									teamsIter = teamsIter+1
+							#print 'Location is %s' % teamsIter
+							timesTeamGiven[teamsIter-1] = timesTeamGiven[teamsIter-1] + 1
+				if answerNum == 6:
+					if tweetRelevant:
+						if value not in sportsArray:
+							sportsArray.append(value)
+							timesSportGiven.append(1)
+						else:
+							for y in sportsArray:
+								if y==value:
+									break
+								else:
+									sportsIter = sportsIter+1
+							#print 'Location is %s' % sportsIter
+							timesSportGiven[sportsIter-1] = timesSportGiven[sportsIter-1] + 1
+				print "%s" % value
+	
+		#print "-------------------------"
+	
+	print teamsArray
+	print timesTeamGiven
+	print sportsArray
+	print timesSportGiven
+	
+	tempTeamArray = teamsArray
+	tempTeamNum = timesTeamGiven
+	tempSportArray = sportsArray
+	tempSportNum = timesSportGiven
+	
+	tempArray = zip(tempTeamArray, tempTeamNum)
+	tempArray.sort(key=lambda x:x[1])
+	tempArray2=zip(tempSportArray, tempSportNum)
+	tempArray2.sort(key=lambda x:x[1])
+	
+	tempTeams = [x[0] for x in tempArray]
+	tempTeams.reverse()
+	tempSports = [x[0] for x in tempArray2]
+	tempSports.reverse()
+	
+	print '\n\nOrdered Teams: '
+	print tempTeams
+	print 'Ordered Sports: '
+	print tempSports
+	
+	if len(tempTeams) < 2:
+		endPrediction = True
+		tweetNum = tweetNum + 1
+	elif tempTeams[0]  == 'N/A' or tempTeams[1] == 'N/A':
+		endPrediction = True
+		tweetNum = tweetNum + 1
+	else:
+		endPrediction = False
+		break
 
-	#print "-------------------------"
-
-print teamsArray
-print timesTeamGiven
-print sportsArray
-print timesSportGiven
-
-tempTeamArray = teamsArray
-tempTeamNum = timesTeamGiven
-tempSportArray = sportsArray
-tempSportNum = timesSportGiven
-
-tempArray = zip(tempTeamArray, tempTeamNum)
-tempArray.sort(key=lambda x:x[1])
-tempArray2=zip(tempSportArray, tempSportNum)
-tempArray2.sort(key=lambda x:x[1])
-
-tempTeams = [x[0] for x in tempArray]
-tempTeams.reverse()
-tempSports = [x[0] for x in tempArray2]
-tempSports.reverse()
-
-print '\n\nOrdered Teams: '
-print tempTeams
-print 'Ordered Sports: '
-print tempSports
-
-if len(tempTeams) < 2:
-	print 'Not enough teams. No game to predict.'
-elif tempTeams[0]  == 'N/A' or tempTeams[1] == 'N/A':
+		
+if endPrediction:
 	print 'Not enough teams. No game to predict.'
 else:
 	team1 = tempTeams[0]
@@ -364,7 +386,7 @@ else:
 				description=description2,
 				keywords=keywords2,
 				duration = 60*5,
-				lifetime = 60*5,
+				lifetime = 60*30,
 				reward=0.01)
 	
 	hit2_id=hit2[0].HITId
@@ -374,7 +396,7 @@ else:
 	while True:
 		assignments2 = mtc.get_assignments(hit2_id)
 		num2 = int(assignments2.NumResults)
-		if num2 < numberHits:
+		if num2 < (numberHits/2):
 			continue
 		else:
 			break
