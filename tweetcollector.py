@@ -30,18 +30,18 @@ class TwitterCrawler():
     # access_secret = ""
 
     # My Key
-    consumer_key = 'rbsR035nxCq4qJHQVKpLg'
-    consumer_secret = 'wI6jJiVhPOYb1Unb06SbqEKaqaW7iamhUZIOy2Vk0'
-    access_key = '1952067906-GQzJNJZzG1NuPjk9MfIWEqsSi3UZkEZbFNIwpKQ'
-    access_secret = 'am8KbP7GZHC2OXUconGUvmMYCG15HzBmLS6VAhF4'
+    consumer_key = 'KW3eLVXHPBNueZJZOIQ'
+    consumer_secret = '4nMJhuPxhMXbAM0QfXHF56SaPPNYjbR24zdCv078Q'
+    access_key = '2416454197-RJtHf7L2nHbs4Nqi3U186iFOa6YaFeatEe450M0'
+    access_secret = 'KpDXMptCpyhq6mmgXAoiyQEjyhEgnwnJSDy59t5jdBtcj'
     
     auth = None
     api = None
 
-    username = "Wally_Ge"
+    username = "soccerfan1392"
 
     def __init__(self):
-        self.username = 'Wally_Ge'
+        self.username = 'soccerfan1392'
         self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_key, self.access_secret)
         self.api = tweepy.API(self.auth)
@@ -96,10 +96,10 @@ class TwitterCrawler():
                 rpp=100,
                 result_type="recent",
                 include_entities=True,
-                lang="en").items(3000):
+                lang="en").items(20):
                 # docText = tweet.text.encode('utf-8')
                 # printList.append(docText)
-                printList.append(tweet.json)
+                printList.append(get_attributes(tweet))
 
         #Print to file for testing purposes
         # fileName = docName + ".json"

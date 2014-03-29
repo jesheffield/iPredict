@@ -1,15 +1,19 @@
 from boto.mturk.connection import MTurkConnection
 from boto.mturk.question import QuestionContent,Question,QuestionForm, Overview,AnswerSpecification,SelectionAnswer,FormattedContent,FreeTextAnswer, SimpleField
 from time import sleep
+from tweetcollector import TwitterCrawler
 
-
-ACCESS_ID ='AKIAJRXDWKSWCOOVDQRA'
-SECRET_KEY = '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'
+#----------USER CHANGES THESE--------
+ACCESS_ID ='access id'
+SECRET_KEY = 'key'
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
- 
+numberHits = 1
+
 mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
-					  aws_secret_access_key=SECRET_KEY,
-					  host=HOST)
+					  aws_secret_access_key=SECRET_KEY)
+
+#----------------------------------------------
+
  
 title = 'Sports questions'
 description = ('Answer questions about your knowledge of sports')
@@ -54,6 +58,15 @@ def get_all_reviewable_hits(mtc):
 		temp_hits = mtc.get_reviewable_hits(page_size=page_size,page_number=pn)
 		hits.extend(temp_hits)
 	return hits
+ 
+
+ 
+querylist= ['from:ESPNCBB']
+tc = TwitterCrawler()
+tc.check_api_rate_limit(900)
+result = tc.collect_tweets(querylist)
+
+tweet = result[2]['text'].encode('utf-8','ignore')
  
 #---------------  BUILD OVERVIEW 1 -------------------
  
@@ -158,14 +171,15 @@ question_form1.append(q6)
 #--------------- CREATE THE HIT -------------------
 
 
-'''
+
 hit1 = mtc.create_hit(questions=question_form1,
-			   max_assignments=1,
+			   max_assignments=numberHits,
 			   title=title,
 			   description=description,
 			   keywords=keywords,
 			   duration = 60*5,
-			   reward=0.05)
+			   lifetime=60*5,
+			   reward=0.01)
 
 hit1_id=hit1[0].HITId
 
@@ -176,36 +190,38 @@ hit1_id=hit1[0].HITId
 while True:
 	assignments1 = mtc.get_assignments(hit1_id)
 	num1 = int(assignments1.NumResults)
-	if num1 < 1:
+	if num1 < numberHits:
 		#print 'Not done1'
 		continue
 	else:
 		break
 	
 print 'Done1'
-'''
+
 
 
 #Get data from hit1
 
-teamsArray = ['A', 'B']
-timesTeamGiven=[3, 5]
-sportsArray = ['NBA']
-timesSportGiven = [5]
+teamsArray = []
+timesTeamGiven=[]
+sportsArray = []
+timesSportGiven = []
 tweetRelevant = False
-'''
+
 assignments1 = mtc.get_assignments(hit1_id)
 answerNum=0
 teamsIter = 0
 sportsIter = 0
 for assignment in assignments1:
-	#print "Answers of the worker %s" % assignment.WorkerId
+	print "Answers of the worker %s" % assignment.WorkerId
 	for question_form_answer in assignment.answers[0]:
 		for value in question_form_answer.fields:
-			answerNum=answerNum+1
-			#print "Answer %s:" % answerNum
+			answerNum=(answerNum+1)%7
+			if answerNum == 0:
+				answerNum = 1
+			print "Answer %s:" % answerNum
 			if answerNum == 3:
-				if value == 0:
+				if int(value) == int(0):
 					tweetRelevant = False
 				else:
 					tweetRelevant = True
@@ -236,10 +252,10 @@ for assignment in assignments1:
 								sportsIter = sportsIter+1
 						#print 'Location is %s' % sportsIter
 						timesSportGiven[sportsIter-1] = timesSportGiven[sportsIter-1] + 1
-			#print "%s" % value
+			print "%s" % value
 
 	#print "-------------------------"
-'''
+
 print teamsArray
 print timesTeamGiven
 print sportsArray
@@ -280,8 +296,11 @@ else:
 	#---------------  BUILD QUESTION 1 -------------------
 	
 	qc7 = QuestionContent()
-	sport = 'NBA'
-	question = '...' + sport + '?'
+	if str(tempSports[0]).lower() == str('N/A').lower():
+		sport = tempSports[1]
+	else:
+		sport = tempSports[0]
+	question = '...' + str(sport) + '?'
 	qc7.append_field('Title',value=question)
 	
 	fta7 = SelectionAnswer(min=1, max=1,style='radiobutton',
@@ -340,12 +359,13 @@ else:
 	#--------------- CREATE THE HIT -------------------
 	
 	hit2 = mtc.create_hit(questions=question_form2,
-				max_assignments=1,
+				max_assignments=numberHits,
 				title=title2,
 				description=description2,
 				keywords=keywords2,
 				duration = 60*5,
-				reward=0.05)
+				lifetime = 60*5,
+				reward=0.01)
 	
 	hit2_id=hit2[0].HITId
 	
@@ -354,7 +374,7 @@ else:
 	while True:
 		assignments2 = mtc.get_assignments(hit2_id)
 		num2 = int(assignments2.NumResults)
-		if num2 < 1:
+		if num2 < numberHits:
 			continue
 		else:
 			break
@@ -371,13 +391,14 @@ else:
 	
 	knowledgeValue = 0
 	
-	
 	for assignment in assignments2:
-		#print "Answers of the worker %s" % assignment.WorkerId
+		print "Answers of the worker %s" % assignment.WorkerId
 		for question_form_answer in assignment.answers[0]:
 			for value in question_form_answer.fields:
-				answerNum=answerNum+1
-				#print "Answer %s:" % answerNum
+				answerNum=(answerNum+1)%4
+				if answerNum == 0:
+					answerNum = 1
+				print "Answer %s:" % answerNum
 				if answerNum == 1:
 					knowledgeValue = int(value)
 				if answerNum == 2:
@@ -387,9 +408,9 @@ else:
 						teamPredicts[1] = teamPredicts[1] + knowledgeValue
 					else:
 						print 'Nothing'
-				#print "%s" % value
+				print "%s" % value
 	
-		#print "-------------------------"
+		print "-------------------------"
 	
 	print teamsArray2
 	print teamPredicts
