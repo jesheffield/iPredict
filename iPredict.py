@@ -4,13 +4,14 @@ from time import sleep
 from tweetcollector import TwitterCrawler
 
 #----------USER CHANGES THESE--------
-ACCESS_ID ='access id'
-SECRET_KEY = 'key'
+ACCESS_ID ='AKIAJJHVDIA23DODP3DA'
+SECRET_KEY = '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'
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
 numberHits = 1
+numPredictionHits = 5
 maxTweets = 5
 
-
+'''
 #------------SANDBOX TESTING--------------------
 mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
 					  aws_secret_access_key=SECRET_KEY,
@@ -21,7 +22,7 @@ mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
 '''					  
 mtc = MTurkConnection(aws_access_key_id=ACCESS_ID,
 					  aws_secret_access_key=SECRET_KEY)					  
-'''
+
 
 #----------------------------------------------
 
@@ -51,6 +52,7 @@ yesNo = [('No', '0'),
 		
 tweet = 'Team A and Team B'
 
+
 def get_all_reviewable_hits(mtc):
 	page_size = 50
 	hits = mtc.get_reviewable_hits(page_size=page_size)
@@ -78,7 +80,9 @@ tc.check_api_rate_limit(900)
 result = tc.collect_tweets(querylist)
 
 tweetNum = 0
-
+iteration = 0
+hit1 = []
+hit1_id = []
 while(tweetNum <= maxTweets):
 	tweet = result[tweetNum]['text'].encode('utf-8','ignore')
 	
@@ -149,7 +153,7 @@ while(tweetNum <= maxTweets):
 	#---------------  BUILD QUESTION 5 -------------------
 	
 	qc5 = QuestionContent()
-	qc5.append_field('Title','If a game is mentioned, enter second team. Otherwise, enter N/A')
+	qc5.append_field('Title','Enter the second team, if only one team is mentioned perform a search for the other team playing, else N/A.')
 	
 	fta5 = FreeTextAnswer()
 	
@@ -186,28 +190,28 @@ while(tweetNum <= maxTweets):
 	
 	
 	
-	hit1 = mtc.create_hit(questions=question_form1,
+	hit1.append(mtc.create_hit(questions=question_form1,
 				max_assignments=numberHits,
 				title=title,
 				description=description,
 				keywords=keywords,
 				duration = 60*5,
 				lifetime=60*30,
-				reward=0.01)
-	
-	hit1_id=hit1[0].HITId
+				reward=0.01))
+	tempHit = hit1[iteration]	
+	hit1_id.append(tempHit[0].HITId)
 	
 	
 	#WAIT UNTIL ENOUGH RESPONSES HAVE BEEN GIVEN
-	
-	while True:
-		assignments1 = mtc.get_assignments(hit1_id)
+	done1 = False
+	while not done1:
+		assignments1 = mtc.get_assignments(hit1_id[iteration])
 		num1 = int(assignments1.NumResults)
 		if num1 < numberHits:
 			#print 'Not done1'
 			continue
 		else:
-			break
+			done1 = True
 		
 	print 'Done1'
 	
@@ -221,7 +225,7 @@ while(tweetNum <= maxTweets):
 	timesSportGiven = []
 	tweetRelevant = False
 	
-	assignments1 = mtc.get_assignments(hit1_id)
+	assignments1 = mtc.get_assignments(hit1_id[iteration])
 	answerNum=0
 	teamsIter = 0
 	sportsIter = 0
@@ -303,6 +307,7 @@ while(tweetNum <= maxTweets):
 	else:
 		endPrediction = False
 		break
+	iteration = iteration+1
 
 		
 if endPrediction:
@@ -318,11 +323,13 @@ else:
 	#---------------  BUILD QUESTION 1 -------------------
 	
 	qc7 = QuestionContent()
-	if str(tempSports[0]).lower() == str('N/A').lower():
+	'''
+	if str(tempSports[0]).lower() == str('N/A').lower(): #use to get different leagues
 		sport = tempSports[1]
 	else:
 		sport = tempSports[0]
-	question = '...' + str(sport) + '?'
+	'''
+	question = 'NCAA?'
 	qc7.append_field('Title',value=question)
 	
 	fta7 = SelectionAnswer(min=1, max=1,style='radiobutton',
@@ -330,7 +337,7 @@ else:
 						type='text',
 						other=False)
 	
-	q7 = Question(identifier='nba',
+	q7 = Question(identifier='NCAA',
 				content=qc7,
 				answer_spec=AnswerSpecification(fta7),
 				is_required=True)
@@ -381,7 +388,7 @@ else:
 	#--------------- CREATE THE HIT -------------------
 	
 	hit2 = mtc.create_hit(questions=question_form2,
-				max_assignments=numberHits,
+				max_assignments=numPredictionHits,
 				title=title2,
 				description=description2,
 				keywords=keywords2,
@@ -396,7 +403,7 @@ else:
 	while True:
 		assignments2 = mtc.get_assignments(hit2_id)
 		num2 = int(assignments2.NumResults)
-		if num2 < numberHits:
+		if num2 < numPredictionHits:
 			continue
 		else:
 			break
