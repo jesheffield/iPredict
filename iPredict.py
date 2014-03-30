@@ -4,8 +4,8 @@ from time import sleep
 from tweetcollector import TwitterCrawler
 
 #----------USER CHANGES THESE--------
-ACCESS_ID ='AKIAJJHVDIA23DODP3DA'
-SECRET_KEY = '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'
+ACCESS_ID ='accessID'
+SECRET_KEY = 'key'
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
 numberHits = 1
 numPredictionHits = 5
