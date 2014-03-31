@@ -6,8 +6,8 @@ import sys
 
 
 #----------USER CHANGES THESE--------
-ACCESS_ID ='accessID'
-SECRET_KEY = 'key'
+ACCESS_ID =''
+SECRET_KEY = ''
 HOST = 'mechanicalturk.sandbox.amazonaws.com'
 numberHits = 1
 numPredictionHits = 5
@@ -89,7 +89,6 @@ else:
 	querylist= ['from:ESPNCBB']
 print gametype
 
-querylist= ['from:ESPNCBB']
 tc = TwitterCrawler()
 tc.check_api_rate_limit(900)
 result = tc.collect_tweets(querylist)
