@@ -2,6 +2,8 @@ from boto.mturk.connection import MTurkConnection
 from boto.mturk.question import QuestionContent,Question,QuestionForm, Overview,AnswerSpecification,SelectionAnswer,FormattedContent,FreeTextAnswer, SimpleField
 from time import sleep
 from tweetcollector import TwitterCrawler
+import sys
+
 
 #----------USER CHANGES THESE--------
 ACCESS_ID ='accessID'
@@ -72,8 +74,21 @@ def get_all_reviewable_hits(mtc):
 		hits.extend(temp_hits)
 	return hits
  
+gametype = ''
+if (sys.argv[1] == str(1)):
+	gametype = 'NCAA'
+	querylist= ['from:ESPNCBB']
+elif(sys.argv[1] == str(2)):
+	gametype = 'NBA'
+	querylist= ['from:NBA']
+elif(sys.argv[1] == str(3)):
+	gametype = 'Premier League'
+	querylist= ['from:OptaJoe']
+else:
+	gametype = 'NCAA' #standard
+	querylist= ['from:ESPNCBB']
+print gametype
 
- 
 querylist= ['from:ESPNCBB']
 tc = TwitterCrawler()
 tc.check_api_rate_limit(900)
@@ -92,7 +107,7 @@ while(tweetNum <= maxTweets):
 	overview.append_field('Title', 'How much do you know about...')
 	
 	#---------------  BUILD QUESTION 1 -------------------
-	
+	'''
 	qc1 = QuestionContent()
 	qc1.append_field('Title','...NBA?')
 	
@@ -120,7 +135,7 @@ while(tweetNum <= maxTweets):
 				content=qc2,
 				answer_spec=AnswerSpecification(fta2),
 				is_required=True)
-	
+	'''
 	#---------------  BUILD TWEET INFO -------------------
 	#---------------  BUILD QUESTION 3 -------------------
 	
@@ -166,7 +181,7 @@ while(tweetNum <= maxTweets):
 	#---------------  BUILD QUESTION 6 -------------------
 	
 	qc6 = QuestionContent()
-	qc6.append_field('Title','If is a game mentioned, enter league for game. Otherwise, enter N/A')
+	qc6.append_field('Title','If is a game mentioned, search for the league the teams are playing. Otherwise, enter N/A')
 	
 	fta6 = FreeTextAnswer()
 	
@@ -179,8 +194,8 @@ while(tweetNum <= maxTweets):
 	
 	question_form1 = QuestionForm()
 	question_form1.append(overview)
-	question_form1.append(q1)
-	question_form1.append(q2)
+	#question_form1.append(q1)
+	#question_form1.append(q2)
 	question_form1.append(q3)
 	question_form1.append(q4)
 	question_form1.append(q5)
@@ -196,7 +211,7 @@ while(tweetNum <= maxTweets):
 				description=description,
 				keywords=keywords,
 				duration = 60*5,
-				lifetime=60*30,
+				lifetime=60*60,
 				reward=0.01))
 	tempHit = hit1[iteration]	
 	hit1_id.append(tempHit[0].HITId)
@@ -233,16 +248,16 @@ while(tweetNum <= maxTweets):
 		print "Answers of the worker %s" % assignment.WorkerId
 		for question_form_answer in assignment.answers[0]:
 			for value in question_form_answer.fields:
-				answerNum=(answerNum+1)%7
+				answerNum=(answerNum+1)%5
 				if answerNum == 0:
 					answerNum = 1
 				print "Answer %s:" % answerNum
-				if answerNum == 3:
+				if answerNum == 1:
 					if int(value) == int(0):
 						tweetRelevant = False
 					else:
 						tweetRelevant = True
-				if answerNum == 4 or answerNum == 5:
+				if answerNum == 2 or answerNum == 3:
 					if tweetRelevant:
 						teamsIter = 0
 						if value not in teamsArray:
@@ -256,7 +271,7 @@ while(tweetNum <= maxTweets):
 									teamsIter = teamsIter+1
 							#print 'Location is %s' % teamsIter
 							timesTeamGiven[teamsIter-1] = timesTeamGiven[teamsIter-1] + 1
-				if answerNum == 6:
+				if answerNum == 4:
 					if tweetRelevant:
 						if value not in sportsArray:
 							sportsArray.append(value)
@@ -323,13 +338,10 @@ else:
 	#---------------  BUILD QUESTION 1 -------------------
 	
 	qc7 = QuestionContent()
-	'''
-	if str(tempSports[0]).lower() == str('N/A').lower(): #use to get different leagues
-		sport = tempSports[1]
-	else:
-		sport = tempSports[0]
-	'''
-	question = 'NCAA?'
+	
+	sport = tempSports[0]
+	
+	question = gametype + '?\n'
 	qc7.append_field('Title',value=question)
 	
 	fta7 = SelectionAnswer(min=1, max=1,style='radiobutton',
@@ -337,7 +349,7 @@ else:
 						type='text',
 						other=False)
 	
-	q7 = Question(identifier='NCAA',
+	q7 = Question(identifier='gametype',
 				content=qc7,
 				answer_spec=AnswerSpecification(fta7),
 				is_required=True)
